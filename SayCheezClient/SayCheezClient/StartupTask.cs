@@ -17,7 +17,7 @@ namespace SayCheezClient
 {
     public sealed class StartupTask : IBackgroundTask
     {
-        private const string serviceUri = "http://saycheez.azurewebsites.net/api/pictures/";
+        private const string serviceUri = "http://saycheez.azurewebsites.net/api/uploads/";
 
         BackgroundTaskDeferral deferral;
         MediaCapture mediaCapture;

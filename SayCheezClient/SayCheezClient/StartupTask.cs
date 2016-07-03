@@ -17,37 +17,35 @@ namespace SayCheezClient
 {
     public sealed class StartupTask : IBackgroundTask
     {
+        private const string serviceUri = "http://saycheez.azurewebsites.net/api/pictures/";
+
         BackgroundTaskDeferral deferral;
         MediaCapture mediaCapture;
-        StorageFolder photosFolder;
+        StorageFolder picturesFolder;
 
         public void Run(IBackgroundTaskInstance taskInstance)
         {
             deferral = taskInstance.GetDeferral();
             
-            initialize();
+            initializePicturesFolder();
             try
             {
                 takePhoto();
             }
             catch(Exception ex)
             {
-                Debug.WriteLine("In catch block");
                 Debug.WriteLine(ex.Message);
             }
-            Debug.WriteLine("At end of try/catch");
             
         }
 
-        private async void initialize()
+        private async void initializePicturesFolder()
         {
-            Debug.WriteLine("Beginning of initialize");
             string photosFolderName = "SayCheez";
             
             IStorageItem folder = await KnownFolders.SavedPictures.TryGetItemAsync(photosFolderName);
 
-            photosFolder = folder != null ? (StorageFolder)folder : await KnownFolders.SavedPictures.CreateFolderAsync(photosFolderName);
-            Debug.WriteLine("Line after creating/retrieving photos folder. " + photosFolder.Path);
+            picturesFolder = folder != null ? (StorageFolder)folder : await KnownFolders.SavedPictures.CreateFolderAsync(photosFolderName);
 
         }
 
@@ -58,8 +56,8 @@ namespace SayCheezClient
             mediaCapture = new MediaCapture();
             await mediaCapture.InitializeAsync();
 
-            Debug.WriteLine("Just before creating photo file");
-            photoFile = await photosFolder.CreateFileAsync(String.Format("{0:dd-MM-yyyy HH-mm-ss}.jpg", DateTime.Now), CreationCollisionOption.GenerateUniqueName);
+            DateTime timeNow = DateTime.Now;
+            photoFile = await picturesFolder.CreateFileAsync(String.Format("{0:dd-MM-yyyy HH-mm-ss}.jpg", timeNow), CreationCollisionOption.GenerateUniqueName);
             await mediaCapture.CapturePhotoToStorageFileAsync(ImageEncodingProperties.CreateJpeg(), photoFile);
 
             Debug.WriteLine("Picture taken" + photoFile.Path);
@@ -68,9 +66,9 @@ namespace SayCheezClient
             try
             {
                 IBuffer bufferContent = await FileIO.ReadBufferAsync(photoFile);
-                string json = JsonConvert.SerializeObject(new { Time = DateTime.Now, Content = WindowsRuntimeBufferExtensions.ToArray(bufferContent) });
+                string json = JsonConvert.SerializeObject(new { Time = timeNow, Content = WindowsRuntimeBufferExtensions.ToArray(bufferContent) });
                 Debug.WriteLine(json);
-                var result = await httpClient.PostAsync(new Uri("http://saycheez.azurewebsites.net/api/pictures/"), new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
+                var result = await httpClient.PostAsync(new Uri(serviceUri), new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
                 Debug.WriteLine(result);
             }
             catch(Exception ex)

@@ -26,11 +26,11 @@ namespace SayCheezClient
         public void Run(IBackgroundTaskInstance taskInstance)
         {
             deferral = taskInstance.GetDeferral();
-            
+
             initializePicturesFolder();
             try
             {
-                takePhoto();
+                runPictureCaptureTask();
             }
             catch(Exception ex)
             {
@@ -41,15 +41,13 @@ namespace SayCheezClient
 
         private async void initializePicturesFolder()
         {
-            string photosFolderName = "SayCheez";
-            
+            string photosFolderName = "SayCheez";            
             IStorageItem folder = await KnownFolders.SavedPictures.TryGetItemAsync(photosFolderName);
-
             picturesFolder = folder != null ? (StorageFolder)folder : await KnownFolders.SavedPictures.CreateFolderAsync(photosFolderName);
 
         }
 
-        private async void takePhoto()
+        private async void captureAndSendPicture()
         {            
             StorageFile photoFile;
 
@@ -75,7 +73,20 @@ namespace SayCheezClient
             {
                 Debug.WriteLine(ex.InnerException);
             }
+
             httpClient.Dispose();
+        }
+
+        private void runPictureCaptureTask()
+        {
+            var delayTask = Task.Run(async () =>
+            {
+                await Task.Delay(10000);
+                captureAndSendPicture();
+            });
+
+            delayTask.Wait();
+            runPictureCaptureTask();
         }
     }
 }

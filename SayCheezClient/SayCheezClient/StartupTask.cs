@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
@@ -66,7 +68,9 @@ namespace SayCheezClient
             try
             {
                 IBuffer bufferContent = await FileIO.ReadBufferAsync(photoFile);
-                var result = await httpClient.PostAsync(new Uri("http://saycheez.azurewebsites.net/api/pictures/"), new HttpBufferContent(bufferContent));
+                string json = JsonConvert.SerializeObject(new { Time = DateTime.Now, Content = WindowsRuntimeBufferExtensions.ToArray(bufferContent) });
+                Debug.WriteLine(json);
+                var result = await httpClient.PostAsync(new Uri("http://saycheez.azurewebsites.net/api/pictures/"), new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
                 Debug.WriteLine(result);
             }
             catch(Exception ex)

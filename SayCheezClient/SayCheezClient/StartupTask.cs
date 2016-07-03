@@ -8,6 +8,8 @@ using Windows.ApplicationModel.Background;
 using Windows.Media.Capture;
 using Windows.Media.MediaProperties;
 using Windows.Storage;
+using Windows.Storage.Streams;
+using Windows.Web.Http;
 
 namespace SayCheezClient
 {
@@ -59,6 +61,19 @@ namespace SayCheezClient
             await mediaCapture.CapturePhotoToStorageFileAsync(ImageEncodingProperties.CreateJpeg(), photoFile);
 
             Debug.WriteLine("Picture taken" + photoFile.Path);
+
+            HttpClient httpClient = new HttpClient();
+            try
+            {
+                IBuffer bufferContent = await FileIO.ReadBufferAsync(photoFile);
+                var result = await httpClient.PostAsync(new Uri("http://saycheez.azurewebsites.net/api/pictures/"), new HttpBufferContent(bufferContent));
+                Debug.WriteLine(result);
+            }
+            catch(Exception ex)
+            {
+                Debug.WriteLine(ex.InnerException);
+            }
+            httpClient.Dispose();
         }
     }
 }

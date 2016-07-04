@@ -64,7 +64,7 @@ namespace SayCheezClient
             try
             {
                 IBuffer bufferContent = await FileIO.ReadBufferAsync(photoFile);
-                string json = JsonConvert.SerializeObject(new { Time = timeNow, SerializedContent = WindowsRuntimeBufferExtensions.ToArray(bufferContent) });
+                string json = JsonConvert.SerializeObject(new { Time = timeNow, SerializedContent = Convert.ToBase64String(WindowsRuntimeBufferExtensions.ToArray(bufferContent)) });
                 Debug.WriteLine(json);
                 var result = await httpClient.PostAsync(new Uri(serviceUri), new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
                 Debug.WriteLine(result);

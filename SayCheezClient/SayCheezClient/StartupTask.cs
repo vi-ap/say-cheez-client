@@ -61,18 +61,11 @@ namespace SayCheezClient
             Debug.WriteLine("Picture taken" + photoFile.Path);
 
             HttpClient httpClient = new HttpClient();
-            try
-            {
-                IBuffer bufferContent = await FileIO.ReadBufferAsync(photoFile);
-                string json = JsonConvert.SerializeObject(new { Time = timeNow, SerializedContent = Convert.ToBase64String(WindowsRuntimeBufferExtensions.ToArray(bufferContent)) });
-                Debug.WriteLine(json);
-                var result = await httpClient.PostAsync(new Uri(serviceUri), new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
-                Debug.WriteLine(result);
-            }
-            catch(Exception ex)
-            {
-                Debug.WriteLine(ex.InnerException);
-            }
+            IBuffer bufferContent = await FileIO.ReadBufferAsync(photoFile);
+            string json = JsonConvert.SerializeObject(new { Time = timeNow, SerializedContent = Convert.ToBase64String(WindowsRuntimeBufferExtensions.ToArray(bufferContent)) });
+            Debug.WriteLine(json);
+            var result = await httpClient.PostAsync(new Uri(serviceUri), new HttpStringContent(json, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json"));
+            Debug.WriteLine(result);
 
             httpClient.Dispose();
         }
